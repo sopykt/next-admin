@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import * as React from "react";
+import * as React from 'react';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -12,11 +12,11 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+} from '@tanstack/react-table';
+import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react';
 
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -25,8 +25,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -34,93 +34,80 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 
 export type User = {
-    uid: string;
-    email: string | null;
-    displayName: string | null;
-    phoneNumber: string | null;
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  phoneNumber: string | null;
 };
 
 export const columns: ColumnDef<User>[] = [
-    {
-        id: "select",
-        header: ({ table }) => (
-          <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-            onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
-            aria-label="Select all rows"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            disabled={!row.getCanSelect()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label={`Select row ${row.id}`}
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-      },
   {
-    accessorKey: "uid",
-    header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          ID
-          <ArrowUpDown />
-        </Button>
-      ),
-    cell: ({ row }) => <div>{row.getValue("uid")}</div>,
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
+        aria-label="Select all rows"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        disabled={!row.getCanSelect()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label={`Select row ${row.id}`}
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
   },
   {
-    accessorKey: "displayName",
+    accessorKey: 'uid',
     header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Name
-          <ArrowUpDown />
-        </Button>
-      ),
-    cell: ({ row }) => <div>{row.getValue("displayName")}</div>,
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        ID
+        <ArrowUpDown />
+      </Button>
+    ),
+    cell: ({ row }) => <div>{row.getValue('uid')}</div>,
   },
   {
-    accessorKey: "email",
+    accessorKey: 'displayName',
     header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Name
+        <ArrowUpDown />
+      </Button>
+    ),
+    cell: ({ row }) => <div>{row.getValue('displayName')}</div>,
+  },
+  {
+    accessorKey: 'email',
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
         Email
         <ArrowUpDown />
       </Button>
     ),
-    cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
+    cell: ({ row }) => <div className="lowercase">{row.getValue('email')}</div>,
   },
   {
-    accessorKey: "phoneNumber",
+    accessorKey: 'phoneNumber',
     header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
         Phone
         <ArrowUpDown />
       </Button>
     ),
-    cell: ({ row }) => <div className="lowercase">{row.getValue("phoneNumber")}</div>,
+    cell: ({ row }) => <div className="lowercase">{row.getValue('phoneNumber')}</div>,
   },
   {
-    id: "actions",
+    id: 'actions',
     cell: ({ row }) => {
       const user = row.original;
 
@@ -152,11 +139,8 @@ export default function UserTable() {
   const [error, setError] = React.useState<string | null>(null);
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
   React.useEffect(() => {
@@ -164,12 +148,12 @@ export default function UserTable() {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch("/api/listUsers"); // Adjust your API endpoint
-        if (!response.ok) throw new Error("Failed to fetch data");
+        const response = await fetch('/api/listUsers'); // Adjust your API endpoint
+        if (!response.ok) throw new Error('Failed to fetch data');
         const data = await response.json();
         setUsers(data); // Ensure data matches the `User` type
       } catch (e) {
-        setError((e as Error).message || "An error occurred");
+        setError((e as Error).message || 'An error occurred');
       } finally {
         setLoading(false);
       }
@@ -205,10 +189,8 @@ export default function UserTable() {
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter by email..."
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("email")?.setFilterValue(event.target.value)
-          }
+          value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
+          onChange={(event) => table.getColumn('email')?.setFilterValue(event.target.value)}
           className="max-w-sm"
         />
         <DropdownMenu>
@@ -227,10 +209,7 @@ export default function UserTable() {
                     key={column.id}
                     className="capitalize"
                     checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
+                    onCheckedChange={(value) => column.toggleVisibility(!!value)}>
                     {column.id}
                   </DropdownMenuCheckboxItem>
                 );
@@ -247,10 +226,7 @@ export default function UserTable() {
                   <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                      : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
@@ -259,16 +235,10 @@ export default function UserTable() {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -285,7 +255,7 @@ export default function UserTable() {
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
+          {table.getFilteredSelectedRowModel().rows.length} of{' '}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
         <div className="space-x-2">
@@ -293,16 +263,14 @@ export default function UserTable() {
             variant="outline"
             size="sm"
             onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
+            disabled={!table.getCanPreviousPage()}>
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
+            disabled={!table.getCanNextPage()}>
             Next
           </Button>
         </div>

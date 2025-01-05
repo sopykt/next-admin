@@ -38,7 +38,7 @@ export default [
       ...pluginReact.configs.recommended.rules,
       ...tseslint.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
-      '@typescript-eslint/no-unused-vars': 'warn',
+      // '@typescript-eslint/no-unused-vars': 'warn',
       'prettier/prettier': 'warn',
     },
   },
