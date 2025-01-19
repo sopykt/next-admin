@@ -35,12 +35,31 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { formatDate } from '@/lib/engDate';
 
 export type User = {
   uid: string;
   email: string | null;
   displayName: string | null;
   phoneNumber: string | null;
+  firestoreData: {
+    locationType: string;
+    namePrefix: string;
+    userName: string;
+    gender: string;
+    birthDate: {
+      _seconds: number;
+      _nanoseconds: number;
+    };
+    township: string;
+    addressDetails: string;
+    fatherNamePrefix: string;
+    fatherName: string;
+    motherNamePrefix: string;
+    motherName: string;
+    phoneNumber: string;
+    userId: string;
+  } | null; // `null` if Firestore data is not available
 };
 
 export const columns: ColumnDef<User>[] = [
@@ -77,6 +96,18 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => <div>{row.getValue('uid')}</div>,
   },
   {
+    id: 'namePrefix',
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Name Prefix
+        <ArrowUpDown />
+      </Button>
+    ),
+    accessorFn: (row) => row.firestoreData?.namePrefix ?? '', // Provide a fallback for sorting
+    cell: ({ row }) => <div>{row.original.firestoreData?.namePrefix || 'N/A'}</div>,
+    sortingFn: 'text', // Use a built-in string sorting function
+  },
+  {
     accessorKey: 'displayName',
     header: ({ column }) => (
       <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
@@ -87,6 +118,41 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => <div>{row.getValue('displayName')}</div>,
   },
   {
+    id: 'birthDate',
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Birth Date
+        <ArrowUpDown />
+      </Button>
+    ),
+    accessorFn: (row) => {
+      const birthDate = row.firestoreData?.birthDate;
+      if (birthDate?._seconds) {
+        console.log('birthDate raw:', birthDate);
+        return new Date(birthDate._seconds * 1000); // Convert _seconds to milliseconds
+      }
+      return ''; // Fallback for missing or invalid dates
+    },
+    cell: ({ row }) => {
+      const birthDate = row.original.firestoreData?.birthDate;
+      const formattedDate = birthDate?._seconds
+        ? formatDate(new Date(birthDate._seconds * 1000))
+        : 'N/A';
+      console.log('Formatted birthDate:', formattedDate);
+      return <div>{formattedDate}</div>;
+    },
+    sortingFn: (a, b) => {
+      const dateA = a.getValue('birthDate') as Date | '';
+      const dateB = b.getValue('birthDate') as Date | '';
+      if (dateA && dateB) {
+        return dateA.getTime() - dateB.getTime(); // Compare timestamps
+      }
+      if (!dateA && dateB) return -1; // Place empty dates (or N/A) first
+      if (dateA && !dateB) return 1; // Place valid dates after
+      return 0; // Keep order for equal or both empty dates
+    },
+  },
+  {
     accessorKey: 'email',
     header: ({ column }) => (
       <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
@@ -94,17 +160,46 @@ export const columns: ColumnDef<User>[] = [
         <ArrowUpDown />
       </Button>
     ),
-    cell: ({ row }) => <div className="lowercase">{row.getValue('email')}</div>,
+    cell: ({ row }) => {
+      const user = row.original;
+      const locationType = user.firestoreData?.locationType;
+      if (locationType === 'Domestic') {
+        return <div>N/A</div>;
+      }
+      return <div className="lowercase">{user.email || 'N/A'}</div>;
+    },
+    enableSorting: true,
+    sortingFn: (a, b) => {
+      const emailA =
+        a.original.firestoreData?.locationType === 'Domestic' ? '' : a.original.email || '';
+      const emailB =
+        b.original.firestoreData?.locationType === 'Domestic' ? '' : b.original.email || '';
+      return emailA.localeCompare(emailB); // localeCompare always returns a number
+    },
   },
   {
-    accessorKey: 'phoneNumber',
+    id: 'phoneNumber',
     header: ({ column }) => (
       <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
         Phone
         <ArrowUpDown />
       </Button>
     ),
-    cell: ({ row }) => <div className="lowercase">{row.getValue('phoneNumber')}</div>,
+    accessorFn: (row) => row.firestoreData?.phoneNumber ?? '', // Provide a fallback for sorting
+    cell: ({ row }) => <div>{row.original.firestoreData?.phoneNumber || 'N/A'}</div>,
+    sortingFn: 'text', // Use a built-in string sorting function
+  },
+  {
+    id: 'gender',
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Gender
+        <ArrowUpDown />
+      </Button>
+    ),
+    accessorFn: (row) => row.firestoreData?.gender ?? '',
+    cell: ({ row }) => <div>{row.original.firestoreData?.gender || 'N/A'}</div>,
+    sortingFn: 'auto',
   },
   {
     id: 'actions',
