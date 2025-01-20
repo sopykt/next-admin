@@ -14,6 +14,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react';
+import { FaMale, FaFemale } from 'react-icons/fa';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -35,7 +36,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { formatDate } from '@/lib/engDate';
+import { calculateAgeFromDate, formatDate } from '@/lib/engDate';
+import { Badge } from '../ui/badge';
+import { getLocationDetails } from '@/lib/addresses';
 
 export type User = {
   uid: string;
@@ -153,6 +156,39 @@ export const columns: ColumnDef<User>[] = [
     },
   },
   {
+    id: 'age',
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Age
+        <ArrowUpDown />
+      </Button>
+    ),
+    accessorFn: (row) => {
+      const birthDate = row.firestoreData?.birthDate;
+      if (birthDate?._seconds) {
+        const dateOfBirth = new Date(birthDate._seconds * 1000);
+        return calculateAgeFromDate(dateOfBirth); // Calculate age from date
+      }
+      return 'N/A'; // Fallback for missing or invalid dates
+    },
+    cell: ({ row }) => {
+      const birthDate = row.original.firestoreData?.birthDate;
+      const age = birthDate?._seconds
+        ? calculateAgeFromDate(new Date(birthDate._seconds * 1000))
+        : 'N/A';
+      return <div>{age}</div>; // Render age in the cell
+    },
+    sortingFn: (a, b) => {
+      const ageA = a.getValue('age') as number | 'N/A';
+      const ageB = b.getValue('age') as number | 'N/A';
+
+      if (ageA === 'N/A' && ageB !== 'N/A') return -1; // Sort 'N/A' first
+      if (ageA !== 'N/A' && ageB === 'N/A') return 1; // Sort valid ages after
+      if (ageA === 'N/A' && ageB === 'N/A') return 0; // Keep order for both 'N/A'
+      return (ageA as number) - (ageB as number); // Sort by age numerically
+    },
+  },
+  {
     accessorKey: 'email',
     header: ({ column }) => (
       <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
@@ -198,8 +234,70 @@ export const columns: ColumnDef<User>[] = [
       </Button>
     ),
     accessorFn: (row) => row.firestoreData?.gender ?? '',
-    cell: ({ row }) => <div>{row.original.firestoreData?.gender || 'N/A'}</div>,
+    cell: ({ row }) => {
+      const gender = row.original.firestoreData?.gender;
+
+      return gender === 'male' ? (
+        <Badge gender="male">
+          <FaMale className="mr-1" /> Male
+        </Badge>
+      ) : gender === 'female' ? (
+        <Badge gender="female">
+          <FaFemale className="mr-1" /> Female
+        </Badge>
+      ) : (
+        <Badge variant="outline">N/A</Badge>
+      );
+    },
     sortingFn: 'auto',
+  },
+  {
+    id: 'addressDetails',
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Address Details
+        <ArrowUpDown />
+      </Button>
+    ),
+    accessorFn: (row) => row.firestoreData?.addressDetails ?? 'N/A',
+    cell: ({ row }) => {
+      const addressDetails = row.original.firestoreData?.addressDetails;
+      return <div>{addressDetails || 'N/A'}</div>;
+    },
+    sortingFn: 'text',
+  },
+  {
+    id: 'township',
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Township
+        <ArrowUpDown />
+      </Button>
+    ),
+    accessorFn: (row) => {
+      if (row.firestoreData?.locationType === 'Domestic') {
+        const { township } = getLocationDetails(row.firestoreData?.township);
+        return township ?? 'N/A';
+      }
+      return 'N/A';
+    },
+    cell: ({ row }) => {
+      const { firestoreData } = row.original;
+      if (firestoreData?.locationType === 'Domestic') {
+        const { township } = getLocationDetails(firestoreData?.township);
+        return <div>{township}</div>;
+      }
+      return <div>N/A</div>;
+    },
+    sortingFn: (a, b) => {
+      const townshipA = a.getValue('township') as string;
+      const townshipB = b.getValue('township') as string;
+
+      // Sorting with N/A considered to come last
+      if (townshipA === 'N/A' && townshipB !== 'N/A') return 1;
+      if (townshipA !== 'N/A' && townshipB === 'N/A') return -1;
+      return townshipA.localeCompare(townshipB); // Sorting strings alphabetically
+    },
   },
   {
     id: 'actions',
