@@ -89,6 +89,7 @@ export const columns: ColumnDef<User>[] = [
     enableHiding: false,
   },
   {
+    id: 'uid',
     accessorKey: 'uid',
     header: ({ column }) => (
       <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
@@ -300,6 +301,120 @@ export const columns: ColumnDef<User>[] = [
     },
   },
   {
+    id: 'district',
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        District
+        <ArrowUpDown />
+      </Button>
+    ),
+    accessorFn: (row) => {
+      if (row.firestoreData?.locationType === 'Domestic') {
+        const { district } = getLocationDetails(row.firestoreData?.township);
+        return district ?? 'N/A';
+      }
+      return 'N/A';
+    },
+    cell: ({ row }) => {
+      const { firestoreData } = row.original;
+      if (firestoreData?.locationType === 'Domestic') {
+        const { district } = getLocationDetails(firestoreData?.township);
+        return <div>{district}</div>;
+      }
+      return <div>N/A</div>;
+    },
+    sortingFn: (a, b) => {
+      const districtA = a.getValue('district') as string;
+      const districtB = b.getValue('district') as string;
+
+      // Sorting with N/A considered to come last
+      if (districtA === 'N/A' && districtB !== 'N/A') return 1;
+      if (districtA !== 'N/A' && districtB === 'N/A') return -1;
+      return districtA.localeCompare(districtB); // Sorting strings alphabetically
+    },
+  },
+  {
+    id: 'state',
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        State
+        <ArrowUpDown />
+      </Button>
+    ),
+    accessorFn: (row) => {
+      if (row.firestoreData?.locationType === 'Domestic') {
+        const { state } = getLocationDetails(row.firestoreData?.township);
+        return state ?? 'N/A';
+      }
+      return 'N/A';
+    },
+    cell: ({ row }) => {
+      const { firestoreData } = row.original;
+      if (firestoreData?.locationType === 'Domestic') {
+        const { state } = getLocationDetails(firestoreData?.township);
+        return <div>{state}</div>;
+      }
+      return <div>N/A</div>;
+    },
+    sortingFn: (a, b) => {
+      const stateA = a.getValue('state') as string;
+      const stateB = b.getValue('state') as string;
+
+      // Sorting with N/A considered to come last
+      if (stateA === 'N/A' && stateB !== 'N/A') return 1;
+      if (stateA !== 'N/A' && stateB === 'N/A') return -1;
+      return stateA.localeCompare(stateB); // Sorting strings alphabetically
+    },
+  },
+  {
+    id: 'fatherNamePrefix',
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Father Name Prefix
+        <ArrowUpDown />
+      </Button>
+    ),
+    accessorFn: (row) => row.firestoreData?.fatherNamePrefix ?? '', // Provide a fallback for sorting
+    cell: ({ row }) => <div>{row.original.firestoreData?.fatherNamePrefix || 'N/A'}</div>,
+    sortingFn: 'text', // Use a built-in string sorting function
+  },
+  {
+    accessorKey: 'fatherName',
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Father Name
+        <ArrowUpDown />
+      </Button>
+    ),
+    accessorFn: (row) => row.firestoreData?.fatherName ?? '', // Provide a fallback for sorting
+    cell: ({ row }) => <div>{row.original.firestoreData?.fatherName || 'N/A'}</div>,
+    sortingFn: 'text', // Use a built-in string sorting function
+  },
+  {
+    id: 'motherNamePrefix',
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Mother Name Prefix
+        <ArrowUpDown />
+      </Button>
+    ),
+    accessorFn: (row) => row.firestoreData?.motherNamePrefix ?? '', // Provide a fallback for sorting
+    cell: ({ row }) => <div>{row.original.firestoreData?.motherNamePrefix || 'N/A'}</div>,
+    sortingFn: 'text', // Use a built-in string sorting function
+  },
+  {
+    accessorKey: 'motherName',
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Mother Name
+        <ArrowUpDown />
+      </Button>
+    ),
+    accessorFn: (row) => row.firestoreData?.motherName ?? '', // Provide a fallback for sorting
+    cell: ({ row }) => <div>{row.original.firestoreData?.motherName || 'N/A'}</div>,
+    sortingFn: 'text', // Use a built-in string sorting function
+  },
+  {
     id: 'actions',
     cell: ({ row }) => {
       const user = row.original;
@@ -333,7 +448,14 @@ export default function UserTable() {
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
+    uid: false,
+    birthDate: false,
+    fatherNamePrefix: false,
+    fatherName: false,
+    motherNamePrefix: false,
+    motherName: false,
+  });
   const [rowSelection, setRowSelection] = React.useState({});
 
   React.useEffect(() => {
@@ -392,7 +514,7 @@ export default function UserTable() {
               Columns <ChevronDown />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="max-h-64 overflow-y-auto">
             {table
               .getAllColumns()
               .filter((column) => column.getCanHide())
